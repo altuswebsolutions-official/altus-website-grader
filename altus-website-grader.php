@@ -5,6 +5,8 @@
  * Version: 1.0.0
  * Author: Altus Web Solutions
  * Text Domain: altus-website-grader
+ * License: GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Requires at least: 5.8
  * Requires PHP: 7.4
  */
@@ -138,7 +140,7 @@ function awg_ajax_run() {
     }
     set_transient($key, $hits + 1, HOUR_IN_SECONDS);
 
-    $url           = isset($_POST['url']) ? trim(wp_unslash($_POST['url'])) : '';
+    $url           = isset($_POST['url']) ? trim(sanitize_text_field(wp_unslash($_POST['url']))) : '';
     $business_name = isset($_POST['business_name']) ? sanitize_text_field(wp_unslash($_POST['business_name'])) : '';
 
     $url = awg_normalize_url($url);
@@ -192,7 +194,8 @@ function awg_ajax_run() {
 function awg_client_ip() {
     foreach (array('HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'REMOTE_ADDR') as $k) {
         if (!empty($_SERVER[$k])) {
-            $ip = trim(explode(',', $_SERVER[$k])[0]);
+            $raw = sanitize_text_field(wp_unslash($_SERVER[$k]));
+            $ip = trim(explode(',', $raw)[0]);
             if (filter_var($ip, FILTER_VALIDATE_IP)) return $ip;
         }
     }

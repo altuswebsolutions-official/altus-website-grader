@@ -14,7 +14,7 @@
  * outside WordPress.
  */
 
-if (!defined('ABSPATH') && !defined('ALTUS_WG_TEST')) exit;
+if (!defined('ABSPATH')) exit;
 
 class Altus_WG_Checker {
 
@@ -48,7 +48,7 @@ class Altus_WG_Checker {
 
         $final_url = !empty($home['final_url']) ? $home['final_url'] : $url;
         $https_final = (stripos($final_url, 'https://') === 0);
-        $host = parse_url($final_url, PHP_URL_HOST);
+        $host = wp_parse_url($final_url, PHP_URL_HOST);
 
         $html = $home['body'];
         $headers = isset($home['headers']) ? $home['headers'] : array();
@@ -125,7 +125,7 @@ class Altus_WG_Checker {
         $info = curl_getinfo($ch);
         // SSRF hardening for followed redirects: the final URL must still be public.
         if (!empty($info['url'])) {
-            $final_host = parse_url($info['url'], PHP_URL_HOST);
+            $final_host = wp_parse_url($info['url'], PHP_URL_HOST);
             if (!$final_host) { curl_close($ch); return array('code' => 0, 'body' => '', 'headers' => array(), 'final_url' => $url, 'ttfb' => null, 'total' => null, 'size' => 0, 'cert_expire' => null, 'error' => 'redirect to invalid host'); }
             if (filter_var($final_host, FILTER_VALIDATE_IP)) {
                 if (filter_var($final_host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) { curl_close($ch); return array('code' => 0, 'body' => '', 'headers' => array(), 'final_url' => $url, 'ttfb' => null, 'total' => null, 'size' => 0, 'cert_expire' => null, 'error' => 'redirect to private host'); }
@@ -320,7 +320,7 @@ class Altus_WG_Checker {
         /* --- SEO --- */
         $title = '';
         if (preg_match('#<title[^>]*>(.*?)</title>#is', $html, $m)) {
-            $title = trim(html_entity_decode(strip_tags($m[1]), ENT_QUOTES, 'UTF-8'));
+            $title = trim(html_entity_decode(wp_strip_all_tags($m[1]), ENT_QUOTES, 'UTF-8'));
         }
         $tlen = mb_strlen($title);
         if ($tlen === 0) {
